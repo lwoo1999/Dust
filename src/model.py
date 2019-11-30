@@ -133,7 +133,7 @@ def fit(data, method=None, options=None):
 
 def fit_for_storage(data, method=None, options=None):
     ret, res, mod = fit(data, method=method, options=options)
-    return np.append(ret, res, mod)
+    return np.append(ret, [res, mod])
 
 
 def show(data, params_):
