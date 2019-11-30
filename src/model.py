@@ -34,7 +34,7 @@ def disk_powlaw(x, amp):
 
 
 # lambda -> lambda*L_lambda
-@jit(float64[:](float64[:], float64, float64), nopython=True, parallel=True)
+@jit(float64[:](float64[:], float64, float64), nopython=True)
 def blackbody(x, temp, lbol):
     # constants
     h = 6.626e-34  # m^2*kg/s
