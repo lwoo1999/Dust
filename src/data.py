@@ -36,3 +36,14 @@ def for_oiii():
         np.apply_along_axis(all, 1, ret["WISE1234"] / ret["WISE1234_ERR"] > 3)
         ]
     return ret
+
+
+def for_civ():
+    ret = data
+    ret = ret[ret["redshift"] > 2.228]
+    ret = ret[ret["redshift"] < 4.165]
+    ret = ret[ret["ew_civ"] != 0]
+    ret = ret[
+        np.apply_along_axis(all, 1, ret["WISE1234"] / ret["WISE1234_ERR"] > 3)
+        ]
+    return ret

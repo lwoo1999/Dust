@@ -101,11 +101,11 @@ def get_residual(dust_model, rsr, wavelength, lum, lum_unc):
 
 
 initial_params = [
-    np.log10(0.5e46),  # disk_amp
-    1500.,   # dust_temp
-    np.log10(5e45),    # dust_lbol
-    -0.2,    # av
-    np.log10(1e46)     # cold_dust
+    np.log10(0.5e46),  # log(disk_amp)
+    1500.,             # dust_temp
+    np.log10(5e45),    # log(dust_lbol)
+    -0.2,              # av
+    np.log10(1e46)     # log(cold_dust)
 ]
 
 bounds = opt.Bounds(
@@ -120,26 +120,33 @@ def fit(data, method=None, options=None):
     ret = None
     mod = None
 
-    for dust_model in dust_models:
+    for i, dust_model in enumerate(dust_models):
         residual = get_residual(dust_model, rsr, wavelength, lum, lum_unc)
         opt_res = opt.minimize(residual, initial_params, bounds=bounds, options=options)
         if opt_res.fun < res:
             res = opt_res.fun
             ret = opt_res.x
-            mod = dust_model
+            mod = i
 
     return ret, res, mod
 
-def fit_and_show(data, method=None, options=None):
-    _, wavelength, lum, lum_unc = prepare_data(data)
-    params, residual, dust_model = fit(data, method=method, options=options)
 
-    print(f"residual={residual}")
+def fit_for_storage(data, method=None, options=None):
+    ret, res, mod = fit(data, method=method, options=options)
+    return np.append(ret, res, mod)
+
+
+def show(data, params_):
+    _, wavelength, lum, lum_unc = prepare_data(data)
+    *params, residual, mod = params_
+    dust_model = dust_models[mod]
 
     sed = get_sed(dust_model, params)
 
     x = np.logspace(np.log10(np.min(wavelength))-0.2, np.log10(np.max(wavelength))+0.2, 100)
-    plt.plot(x, sed(x))
+    plt.figure(figsize=(8, 4))
+
+    plt.plot(x, np.log10(sed(x)))
     plt.plot(x, np.log10(dust_model(x)) + params[4])
     plt.plot(x, np.log10(blackbody(x, params[1], 10**params[2])))
     plt.plot(x, np.log10(disk_powlaw(x, 10**params[0])))
@@ -147,7 +154,13 @@ def fit_and_show(data, method=None, options=None):
     plt.errorbar(wavelength, lum, yerr=lum_unc, fmt="kx")
 
     plt.xscale("log")
+    plt.ylim((np.log10(sed(x).min()) - 0.2, np.log10(sed(x).max()) + 0.2))
 
     plt.title(f"residual={residual}")
 
     plt.show(block=True)
+
+def fit_and_show(data, method=None, options=None):
+    params, residual, dust_model = fit(data, method=method, options=options)
+
+    show(data, [*params, residual, dust_model])
