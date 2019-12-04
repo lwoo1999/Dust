@@ -17,15 +17,22 @@ zeropoint = np.array([
     5.0901e-18
 ])  # W/cm^2/um
 
+zeropoint_unc = np.array([
+    1.2118e-16,
+    3.5454e-17,
+    9.8851e-19,
+    1.0783e-19
+]) / zeropoint
+
 def mag_to_lum(mag, mag_unc, z):
     dist = Planck15.luminosity_distance(z).value * 3.08568e+24  # cm
     lum = -mag/2.5 + np.log10(zeropoint) + np.log10(wavelength) + np.log10(4*np.pi*dist**2) + 7 # J -> erg
-    lum_unc = mag_unc / 2.5
+    lum_unc = np.sqrt((mag_unc / 2.5) ** 2 + (zeropoint_unc / np.log(10)) ** 2)
     return lum, lum_unc
 
 rsr = []
 
-for file in ["W1","W2","W3", "W4"]:
+for file in ["W1","W2","W3","W4"]:
     data = np.loadtxt(f"../data/rsr/{file}")
     rsr_ = RSR(data[:,0], data[:,1])
     rsr_.normalise()

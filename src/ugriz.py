@@ -29,10 +29,21 @@ AB_correction = np.array([
     -0.02
 ])
 
+zeropoint_unc = np.array([
+    1.35e-2,
+    0.9e-2,
+    0.9e-2,
+    0.9e-2,
+    1.35e-2
+])
+
+# log10(x(1+d)) = log10(x) + xd * log10'(x) = log10(x) + d/ln(10)
+# log10'(x) = d/dx ln(x)/ln(10) = 1/(x*ln(10))
+
 def mag_to_lum(mag, mag_unc, z):
     dist = Planck15.luminosity_distance(z).value * 3.08568e+24  # cm
     lum = -(mag - AB_correction)/2.5 + np.log10(zeropoint) + np.log10(wavelength) + np.log10(4*np.pi*dist**2)
-    lum_unc = mag_unc / 2.5
+    lum_unc = np.sqrt((mag_unc / 2.5) ** 2 + (zeropoint_unc / np.log(10)) ** 2)
     return lum, lum_unc
 
 

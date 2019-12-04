@@ -111,7 +111,7 @@ initial_params = [
 bounds = opt.Bounds(
     # disk_amp, dust_temp, dust_lbol, av,      cold_dust
     [-np.inf,   500.,     -np.inf,   -np.inf, -np.inf],
-    [ np.inf,   2000.,     np.inf,    0.,      np.inf]
+    [ np.inf,   2000.,     np.inf,    0.5,     np.inf]
 )
 
 def fit(data, method=None, options=None):
@@ -139,7 +139,7 @@ def fit_for_storage(data, method=None, options=None):
 def show(data, params_):
     _, wavelength, lum, lum_unc = prepare_data(data)
     *params, residual, mod = params_
-    dust_model = dust_models[mod]
+    dust_model = dust_models[int(mod)]
 
     sed = get_sed(dust_model, params)
 

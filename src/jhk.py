@@ -15,10 +15,16 @@ zeropoint = np.array([
     4.283E-14
 ])  # W/cm^2/um
 
+zeropoint_unc = np.array([
+    5.464E-15,
+    2.212E-15,
+    8.053E-16
+]) / zeropoint
+
 def mag_to_lum(mag, mag_unc, z):
     dist = Planck15.luminosity_distance(z).value * 3.08568e+24  # cm
     lum = -mag/2.5 + np.log10(zeropoint) + np.log10(wavelength) + np.log10(4*np.pi*dist**2) + 7 # J -> erg
-    lum_unc = mag_unc / 2.5
+    lum_unc = np.sqrt((mag_unc / 2.5) ** 2 + (zeropoint_unc / np.log(10)) ** 2)
     return lum, lum_unc
 
 rsr = []
