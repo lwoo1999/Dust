@@ -16,7 +16,7 @@ ec = interp1d(1/smc[:, 0], smc[:, 1], bounds_error=False, fill_value=0)
 
 # disk
 disk = np.loadtxt("../data/disk")
-disk_spec = interp1d(disk[0], disk[1])
+disk_spec = interp1d(disk[0], disk[1], kind='cubic')
 
 # log(lambda) -> log(lambda*L_lambda)
 def disk_powlaw_(x):
@@ -34,7 +34,8 @@ def disk_powlaw(x, amp):
 
 
 # lambda -> lambda*L_lambda
-@jit(float64[:](float64[:], float64, float64), nopython=True)
+@np.vectorize
+@jit(float64(float64, float64, float64), nopython=True)
 def blackbody(x, temp, lbol):
     # constants
     h = 6.626e-34  # m^2*kg/s
@@ -58,9 +59,9 @@ m3 = np.genfromtxt("../data/dust/model3.csv")
 wav = np.genfromtxt("../data/dust/wavelength.csv")
 
 dust_models = [
-    interp1d(wav, m1),
-    interp1d(wav, m2),
-    interp1d(wav, m3),
+    interp1d(wav, m1, kind='cubic'),
+    interp1d(wav, m2, kind='cubic'),
+    interp1d(wav, m3, kind='cubic'),
     # interp1d(wav, m4),
 ]
 
@@ -114,7 +115,7 @@ bounds = opt.Bounds(
     [ np.inf,   2000.,     np.inf,    0.5,     np.inf]
 )
 
-def fit(data, method=None, options=None):
+def fit(data, method=None, options=None, prepare_data=prepare_data):
     rsr, wavelength, lum, lum_unc = prepare_data(data)
     res = np.inf
     ret = None
@@ -131,36 +132,45 @@ def fit(data, method=None, options=None):
     return ret, res, mod
 
 
-def fit_for_storage(data, method=None, options=None):
-    ret, res, mod = fit(data, method=method, options=options)
+def fit_for_storage(data, method=None, options=None, prepare_data=prepare_data):
+    ret, res, mod = fit(data, method=method, options=options, prepare_data=prepare_data)
     return np.append(ret, [res, mod])
 
 
 def show(data, params_):
-    _, wavelength, lum, lum_unc = prepare_data(data)
+    rsr, wavelength, lum, lum_unc = prepare_data(data)
     *params, residual, mod = params_
     dust_model = dust_models[int(mod)]
 
     sed = get_sed(dust_model, params)
 
-    x = np.logspace(np.log10(np.min(wavelength))-0.2, np.log10(np.max(wavelength))+0.2, 100)
-    plt.figure(figsize=(8, 4))
+    x = np.logspace(np.log10(np.min(wavelength))-0.2, np.log10(np.max(wavelength))+0.2, 1000)
 
-    plt.plot(x, np.log10(sed(x)))
-    plt.plot(x, np.log10(dust_model(x)) + params[4])
-    plt.plot(x, np.log10(blackbody(x, params[1], 10**params[2])))
-    plt.plot(x, np.log10(disk_powlaw(x, 10**params[0])))
+    plt.figure(figsize=(8, 6))
 
-    plt.errorbar(wavelength, lum, yerr=lum_unc, fmt="kx")
+    ax0 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
+    plt.title(f"residual={residual}")
+
+    ax0.plot(x, np.log10(sed(x)))
+    ax0.plot(x, np.log10(dust_model(x)) + params[4])
+    ax0.plot(x, np.log10(blackbody(x, params[1], 10**params[2])))
+    ax0.plot(x, np.log10(disk_powlaw(x, 10**params[0])))
+
+    ax0.errorbar(wavelength, lum, yerr=lum_unc, fmt="kx")
+    bands = np.log10([get_band(dust_model, params)(rsr, wav) for rsr, wav in zip(rsr, wavelength)])
+    ax0.scatter(wavelength, bands)
 
     plt.xscale("log")
     plt.ylim((np.log10(sed(x).min()) - 0.2, np.log10(sed(x).max()) + 0.2))
 
-    plt.title(f"residual={residual}")
+    ax1 = plt.subplot2grid((3, 1), (2, 0), sharex=ax0)
+    ax1.errorbar(wavelength, lum - bands, yerr=lum_unc, fmt="kx")
+    ax1.plot(x, np.zeros_like(x))
+
 
     plt.show(block=True)
 
-def fit_and_show(data, method=None, options=None):
-    params, residual, dust_model = fit(data, method=method, options=options)
+def fit_and_show(data, method=None, options=None, prepare_data=prepare_data):
+    params, residual, dust_model = fit(data, method=method, options=options, prepare_data=prepare_data)
 
     show(data, [*params, residual, dust_model])
