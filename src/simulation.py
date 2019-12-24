@@ -1,5 +1,5 @@
 import numpy as np
-from model import dust_models, prepare_data, blackbody, disk_powlaw, ec, get_band
+from model import dust_models, prepare_data, blackbody, disk_powlaw, ec, get_band, fit_for_storage
 from analysis import *
 
 def simulate(data, params_, dust_amp, logcf_mean, logcf_std):

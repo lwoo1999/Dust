@@ -4,7 +4,7 @@ import wise
 import ugriz
 
 def prepare_data(data):
-    z = data["redshift"]
+    z = data["z_hw"]
     wavelength = []
     rsr = []
     lum = []

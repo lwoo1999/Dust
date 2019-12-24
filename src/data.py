@@ -8,7 +8,7 @@ file.close()
 
 def for_hb():
     ret = data
-    ret = ret[ret["redshift"] < 0.875]
+    ret = ret[ret["z_hw"] < 0.875]
     ret = ret[ret["ew_narrow_hb"] != 0]
     ret = ret[ret["ew_broad_hb"] != 0]
     ret = ret[
@@ -19,8 +19,8 @@ def for_hb():
 
 def for_mgii():
     ret = data
-    ret = ret[ret["redshift"] < 1.858]
-    ret = ret[ret["redshift"] > 0.786]
+    ret = ret[ret["z_hw"] < 1.858]
+    ret = ret[ret["z_hw"] > 0.786]
     ret = ret[ret["ew_mgii"] != 0]
     ret = ret[
         np.apply_along_axis(all, 1, ret["WISE1234"] / ret["WISE1234_ERR"] > 3)
@@ -30,7 +30,7 @@ def for_mgii():
 
 def for_oiii():
     ret = data
-    ret = ret[ret["redshift"] < 0.8]
+    ret = ret[ret["z_hw"] < 0.8]
     ret = ret[ret["ew_oiii_5007"] != 0]
     ret = ret[
         np.apply_along_axis(all, 1, ret["WISE1234"] / ret["WISE1234_ERR"] > 3)
@@ -40,8 +40,8 @@ def for_oiii():
 
 def for_civ():
     ret = data
-    ret = ret[ret["redshift"] > 2.228]
-    ret = ret[ret["redshift"] < 4.165]
+    ret = ret[ret["z_hw"] > 2.228]
+    ret = ret[ret["z_hw"] < 4.165]
     ret = ret[ret["ew_civ"] != 0]
     ret = ret[
         np.apply_along_axis(all, 1, ret["WISE1234"] / ret["WISE1234_ERR"] > 3)
