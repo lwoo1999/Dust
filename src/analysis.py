@@ -40,3 +40,12 @@ def analysis_(params_):
     logcfs = loglnirs - loglbol
 
     return logcfs
+
+def analysis_catalog(data, params_):
+    _, nir = components(params_)
+
+    loglbol = data["logl5100"] + np.log10(9.26)
+    loglnirs = np.log10(nir(np.linspace(1,10)))
+    logcfs = loglnirs - loglbol
+
+    return logcfs
